@@ -34,7 +34,6 @@ public class StudentUtil implements Serializable {
 			UserDTO user = new UserDAO().getUserByCode(student.getCode());
 			//student = StudentUtil.setStudent(student, user, academicProgramList);
 			String profilePict = StringUtil.isEmpty(user.getProfilePict())?UserDTO.PROFILE_PICT_DEFAULT:user.getProfilePict();
-			
 			StringBuffer strBuff = new StringBuffer();	
 			strBuff.append("<div class='ibox'>");
 			strBuff.append("	<div class='ibox-content product-box'>");
