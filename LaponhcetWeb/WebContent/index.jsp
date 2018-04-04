@@ -305,13 +305,11 @@ else {
 
 				</nav>
 			</div>
-			<div class="row white-bg">
-				<div class="col-sm-12">
-					<h1 class="m-b-xs"><%=sessionInfo.getCurrentLink().getDescription()%></h1>
-					<jsp:include flush="true" page="<%=sessionInfo.getCurrentLink().getPage()%>"></jsp:include>
-				</div>	
+			<div class="row border-bottom white-bg dashboard-header">
+				<h3 class="bg-muted b-r-md p-xs"><%=sessionInfo.getCurrentLink().getDescription()%></h3>
+				<jsp:include flush="true" page="<%=sessionInfo.getCurrentLink().getPage()%>"></jsp:include>
 			</div>
-			<div class="row footer">
+			<div class="footer">
 	        	<div class="pull-right">
 	                  Build <strong>1.0</strong>
 	            </div>
