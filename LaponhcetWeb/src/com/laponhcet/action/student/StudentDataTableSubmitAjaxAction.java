@@ -62,6 +62,7 @@ public class StudentDataTableSubmitAjaxAction extends AjaxActionBase {
 			StudentDTO student = (StudentDTO) pagination.getCurrentPageRecordList().get(i);
 			UserDTO user = new UserDAO().getUserByCode(student.getCode());
 			String profilePict = StringUtil.isEmpty(user.getProfilePict())?UserDTO.PROFILE_PICT_DEFAULT:user.getProfilePict();
+			
 			StringBuffer strBuff = new StringBuffer();	
 			strBuff.append("<div class='ibox'>");
 			strBuff.append("	<div class='ibox-content product-box'>");
