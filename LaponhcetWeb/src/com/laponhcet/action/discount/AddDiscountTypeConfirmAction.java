@@ -19,5 +19,4 @@ public class AddDiscountTypeConfirmAction extends ActionBase {
 	protected void executeLogic() {
 		execute(DiscountTypeDTO.SESSION_DISCOUNT_TYPE, new DiscountTypeDAO(), DAOBase.DAO_ACTION_ADD);
 	}
-	
 }

@@ -31,7 +31,6 @@ public class SearchStudentSpecificDiscountSubmitAction extends AjaxActionBase {
  		String searchValue = getRequestString("txtSearchValue");
 
 		if(StringUtil.isEmpty(searchValue)) {
-			actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Search Item");
 			pagination.setRecordList(pagination.getRecordListUnfiltered());
 		}
 		else {

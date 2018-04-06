@@ -39,15 +39,14 @@ public class StudentSpecificDiscountAction extends ActionBase {
 		}
 		
 		int discountTypeId = getRequestInt("cboDiscountType");
-	    
+	  
 	    if (discountTypeId > 0) {
 	      discount.setDiscountType((DiscountTypeDTO)DTOUtil.getObjById(discountTypeList, discountTypeId));
 	      discount.getDiscountType().setDiscountTypePercentageList(DiscountTypeUtil.getDiscountTypePercentageListByDiscountTypeCode(discount.getDiscountType().getCode()));
-	      
-	      if (discount.getDiscountType().isPercentage()) {
-	        discount.setAmount(0.0D);
+	       discount.setAmount(0.0D);
 	      }
 	      else {
+	    	  if(discount.getDiscountType().isPercentage()){
 	        discount.setAmount(getRequestDouble("txtAmount"));
 	      }
 	    }

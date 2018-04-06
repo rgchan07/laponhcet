@@ -4,7 +4,7 @@ import java.util.List;
 import com.laponhcet.dao.AcademicProgramDAO;
 import com.laponhcet.dao.AcademicYearDAO;
 import com.laponhcet.dao.DiscountTypeDAO;
-
+import com.laponhcet.dao.DiscountTypePercentageDAO;
 import com.laponhcet.dao.SemesterDAO;
 import com.laponhcet.dao.StudentDAO;
 import com.laponhcet.dto.AcademicProgramDTO;
@@ -16,6 +16,7 @@ import com.laponhcet.dto.DiscountTypePercentageDTO;
 import com.laponhcet.dto.SemesterDTO;
 import com.laponhcet.dto.StudentDTO;
 import com.laponhcet.util.DiscountStudentSpecificUtil;
+import com.laponhcet.util.SemesterUtil;
 import com.laponhcet.util.StudentUtil;
 import com.mytechnopal.Pagination;
 import com.mytechnopal.base.ActionBase;
@@ -51,7 +52,7 @@ public class AddStudentSpecificDiscountAction extends ActionBase {
 			setSessionAttribute(UserDTO.SESSION_USER_LIST, new UserDAO().getUserListByUserGroupCode(UserGroupDTO.USER_GROUP_STUDENT_CODE));
 			setSessionAttribute(StudentDTO.SESSION_STUDENT, new StudentDTO());
 			setSessionAttribute(AcademicYearDTO.SESSION_ACADEMIC_YEAR_LIST, new AcademicYearDAO().getAcademicYearList());
-			setSessionAttribute(SemesterDTO.SESSION_SEMESTER_LIST, new SemesterDAO().getSemesterList());
+			setSessionAttribute(SemesterDTO.SESSION_SEMESTER_LIST, SemesterUtil.getSemesterAndAcademicYear(new SemesterDAO().getSemesterList()));
 			setSessionAttribute(DiscountTypeDTO.SESSION_DISCOUNT_TYPE_LIST, new DiscountTypeDAO().getDiscountTypeList());
 			setSessionBeforeTrans(DiscountStudentSpecificDTO.SESSION_DISCOUNT, new DiscountStudentSpecificDTO());
 			

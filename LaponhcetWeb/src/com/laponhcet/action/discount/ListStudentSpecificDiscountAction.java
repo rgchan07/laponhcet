@@ -38,7 +38,7 @@ public class ListStudentSpecificDiscountAction extends ActionBase {
 		else {
 			pagination = (Pagination) getSessionAttribute(DiscountStudentSpecificDTO.SESSION_DISCOUNT_PAGINATION);
 		}
-			DiscountStudentSpecificUtil.setPaginationRecord(sessionInfo, pagination, (List<DTOBase>) getSessionAttribute(AcademicProgramGroupDTO.SESSION_ACADEMIC_PROGRAM_GROUP_LIST));
+			DiscountStudentSpecificUtil.setPaginationRecord(sessionInfo, pagination, (List<DTOBase>) getSessionAttribute(AcademicProgramDTO.SESSION_ACADEMIC_PROGRAM_LIST));
 			setSessionAttribute(DiscountStudentSpecificDTO.SESSION_DISCOUNT_PAGINATION, pagination);
 	}
 
