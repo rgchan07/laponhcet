@@ -22,7 +22,7 @@
 				<%=new ComboBoxWebControl().getComboBoxWebControl(null, "col-sm-4", false, "Search Criteria", "SearchCriteria", TeacherDTO.PAGINATION_SEARCH_CRITERIA_LIST, TeacherDTO.PAGINATION_SEARCH_CRITERIA_LIST[0], TeacherDTO.PAGINATION_SEARCH_CRITERIA_LIST, "", "", "")%>
 	         	<%=new TextBoxWebControl().getTextBoxWebControl(null, "col-sm-6 m-b", false, "Search Value", "", "SearchValue", "", 40, TextBoxWebControl.DATA_TYPE_STRING, "onBlur=\"searchPagination(this.value);\"") %>
 	         	</div>
-	         	<%=new PaginationWebControl().getPaginationWebControl(sessionInfo, "col-sm-12", pagination, teacherSelected.getId()) %>
+	         	<%=new PaginationWebControl().getPaginationWebControlList(sessionInfo, "col-sm-12", pagination, teacherSelected.getId()) %>
 			</div>
         </div>
     </div>

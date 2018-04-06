@@ -7,14 +7,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.laponhcet.dao.TeacherDAO;
+import com.laponhcet.dto.AcademicProgramDTO;
 import com.laponhcet.dto.TeacherDTO;
+import com.laponhcet.util.AcademicProgramUtil;
 import com.laponhcet.util.TeacherUtil;
-import com.laponhcet.util.UserAccessUtil;
 import com.mytechnopal.Pagination;
 import com.mytechnopal.base.AjaxActionBase;
 import com.mytechnopal.base.DTOBase;
 import com.mytechnopal.dao.UserDAO;
+import com.mytechnopal.dto.UserDTO;
 import com.mytechnopal.dto.UserGroupDTO;
 import com.mytechnopal.util.StringUtil;
 
@@ -38,6 +39,7 @@ public class TeacherDataTableSubmitAjaxAction extends AjaxActionBase {
 	}
 	
 	protected void setPaginationList() {
+		List<DTOBase> academicProgramList = (List<DTOBase>) getSessionAttribute(AcademicProgramDTO.SESSION_ACADEMIC_PROGRAM_LIST);
 		Pagination pagination = (Pagination) getSessionAttribute(TeacherDTO.SESSION_TEACHER_PAGINATION);
 		int currentPageTotalRecord = pagination.getCurrentPageRecordList().size();
 		
@@ -55,16 +57,17 @@ public class TeacherDataTableSubmitAjaxAction extends AjaxActionBase {
 		}
 		for(int i=0; i<currentPageTotalRecord; i++) {
 			TeacherDTO teacher = (TeacherDTO) pagination.getCurrentPageRecordList().get(i);
+			UserDTO user = new UserDAO().getUserByCode(teacher.getCode());
 			try {
 				JSONObject jsonObjDetails = new JSONObject();
-				jsonObjDetails.put("pict", teacher.getProfilePict());
+				jsonObjDetails.put("pict", "<img class='img-thumbnail img-md' src='"+ user.getProfilePict() +"'>");
 				jsonObjDetails.put("code", teacher.getCode());
-				jsonObjDetails.put("lastName", teacher.getLastName());
-				jsonObjDetails.put("firstName", teacher.getFirstName());
-				jsonObjDetails.put("middleName", teacher.getMiddleName());
-				jsonObjDetails.put("availability", teacher.getAcademicProgramCodes());
+				jsonObjDetails.put("lastName", user.getLastName());
+				jsonObjDetails.put("firstName", user.getFirstName());
+				jsonObjDetails.put("middleName", user.getMiddleName());
+				jsonObjDetails.put("availability", AcademicProgramUtil.getAcademicProgramCodes(academicProgramList, teacher.getAcademicProgramCodes()));
 				//jsonObjDetails.put("button", pagination.getRecordButtonStr(sessionInfo, register.getId()).replace("~", ","));
-				jsonObjDetails.put("button", TeacherUtil.getRecordButtonStr(sessionInfo, teacher));
+				jsonObjDetails.put(Pagination.PAGINATION_TABLE_ROW_LINK_BUTTON, pagination.getLinkButtonStr(sessionInfo, teacher.getId()).replace("~", ","));
 				jsonArray.put(jsonObjDetails);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block

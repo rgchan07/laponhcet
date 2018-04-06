@@ -178,4 +178,17 @@ public class TeacherUtil extends DataAndSessionBase {
 		}
 		return newUserList;
 	}
+	public static String getProfilePicture(TeacherDTO teacher){
+		String pict = !StringUtil.isEmpty(teacher.getProfilePict())?teacher.getProfilePict():" ";
+		return "<img src='" + pict + "' class='thumbnail' width='70' height='70' />";
+	}
+		
+	public static void setPaginationRecord(SessionInfo sessionInfo, Pagination pagination, List<DTOBase> academicProgramList) {
+		for(DTOBase dto: pagination.getCurrentPageRecordList()) {
+			TeacherDTO teacher = (TeacherDTO) dto;
+			UserDTO user = new UserDAO().getUserByCode(teacher.getCode());
+			teacher.setPaginationRecord(new String[]{TeacherUtil.getProfilePicture(teacher), user.getCode(), user.getLastName(), user.getFirstName(), user.getMiddleName(),  AcademicProgramUtil.getAcademicProgramCodes(academicProgramList, teacher.getAcademicProgramCodes()), pagination.getLinkButtonStr(sessionInfo, teacher.getId()).replace("~", ",")});
+		}
+	}
 }
+

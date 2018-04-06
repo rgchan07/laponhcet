@@ -13,7 +13,9 @@ import com.mytechnopal.dto.ReligionDTO;
 import com.mytechnopal.dto.UserDTO;
 import com.mytechnopal.dto.UserGroupDTO;
 import com.mytechnopal.util.DTOUtil;
+import com.mytechnopal.util.DateTimeUtil;
 import com.mytechnopal.util.StringUtil;
+import com.mytechnopal.util.UserUtil;
 import com.mytechnopal.util.WebUtil;
 
 public class TeacherAction extends ActionBase {
@@ -22,7 +24,10 @@ public class TeacherAction extends ActionBase {
 	protected void setInput() {
 		TeacherDTO teacher = (TeacherDTO) getSessionAttribute(TeacherDTO.SESSION_TEACHER);
 		List<DTOBase> academicProgramList = (List<DTOBase>) getSessionAttribute(AcademicProgramDTO.SESSION_ACADEMIC_PROGRAM_LIST);
-		String easy = getRequestString("txtdisableOrNot");
+		List<DTOBase> cityList = (List<DTOBase>) getSessionAttribute(CityDTO.SESSION_CITY_LIST);
+		List<DTOBase> religionList = (List<DTOBase>) getSessionAttribute(ReligionDTO.SESSION_RELIGION_LIST);
+		
+		//Personal Information
 		teacher.setProfilePict(getRequestString("txtProfilePict", true));
 		teacher.setRfid(getRequestString("txtRfid"));
 		teacher.setPrefixName(getRequestString("cboPrefixName"));
@@ -31,22 +36,27 @@ public class TeacherAction extends ActionBase {
 		teacher.setMiddleName(getRequestString("txtMiddleName"));
 		teacher.setSuffixName(getRequestString("cboSuffixName"));
 		teacher.setOtherTitle(getRequestString("txtOtherTitle"));
+		
+		// Address
 		teacher.setStreetPermanent(getRequestString("txtStreetPermanent"));
 		teacher.setBarangayPermanent(getRequestString("txtBarangayPermanent"));
-		teacher.setCityPermanent((CityDTO)DTOUtil.getObjById((List<DTOBase>) getSessionAttribute(CityDTO.SESSION_CITY_LIST), getRequestInt("cboCityPermanent")));
-		if(!easy.isEmpty()) {
-			teacher.setStreetPresent(getRequestString("txtStreetPermanent"));
-			teacher.setBarangayPresent(getRequestString("txtBarangayPermanent"));
-			teacher.setCityPresent((CityDTO)DTOUtil.getObjById((List<DTOBase>) getSessionAttribute(CityDTO.SESSION_CITY_LIST), getRequestInt("cboCityPermanent")));
-		}else {
+		teacher.setCityPermanent((CityDTO) DTOUtil.getObjById(cityList, getRequestInt("cboCityPermanent")));
+		// If Present Address == Permanent Address
+		if(getRequestBoolean("chkSameAsPermanent")) {
+			teacher.setStreetPresent(teacher.getStreetPermanent());
+			teacher.setBarangayPresent(teacher.getBarangayPermanent());
+			teacher.setCityPresent(teacher.getCityPermanent());
+		}
+		else {
 			teacher.setStreetPresent(getRequestString("txtStreetPresent"));
 			teacher.setBarangayPresent(getRequestString("txtBarangayPresent"));
-			teacher.setCityPresent((CityDTO)DTOUtil.getObjById((List<DTOBase>) getSessionAttribute(CityDTO.SESSION_CITY_LIST), getRequestInt("cboCityPresent")));
+			teacher.setCityPresent((CityDTO) DTOUtil.getObjById(cityList, getRequestInt("cboCityPresent")));
 		}
-		teacher.setBirthDate(getRequestDateTime("txtBirthDate", "MM/dd/yyyy"));
+				
+		teacher.setBirthDate(DateTimeUtil.getStrToDateTime(getRequestString("txtBirthDate"), "MM/dd/yyyy"));
 		teacher.setGender(getRequestString("cboGender"));
-		teacher.setReligion((ReligionDTO) DTOUtil.getObjById((List<DTOBase>) getSessionAttribute(ReligionDTO.SESSION_RELIGION_LIST), getRequestInt("cboReligion")));
-		teacher.setMaritalStatus(getRequestString("cboStatus"));
+		teacher.setReligion((ReligionDTO) DTOUtil.getObjById(religionList, getRequestInt("cboReligion")));
+		teacher.setMaritalStatus(getRequestString("cboMaritalStatus"));
 		teacher.setCpNumber(getRequestString("txtCpNumber"));
 		teacher.setEmailAddress(getRequestString("txtEmailAddress"));
 		teacher.setProgramGraduated(getRequestString("txtProgramGraduated"));
@@ -56,43 +66,120 @@ public class TeacherAction extends ActionBase {
 	protected void validateInput() {
 		if(!sessionInfo.isCurrentLinkDeleteSubmit()) {
 			TeacherDTO teacher = (TeacherDTO) getSessionAttribute(TeacherDTO.SESSION_TEACHER);
-			if(StringUtil.isEmpty(teacher.getLastName())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Lastname");
-			}else if(StringUtil.isEmpty(teacher.getFirstName())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Firstname");
-			}else if(StringUtil.isEmpty(teacher.getMiddleName())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Middlename");
-			}else if(StringUtil.isEmpty(teacher.getStreetPermanent())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Street in Permanent Address");
-			}else if(StringUtil.isEmpty(teacher.getBarangayPermanent())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Barangay in Permanent Address");
-			}else if(StringUtil.isEmpty(teacher.getStreetPresent())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Street in Present Address");
-			}else if(StringUtil.isEmpty(teacher.getBarangayPresent())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Barangay in Present Address");
-			}else if(StringUtil.isEmpty(teacher.getCpNumber())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Cellphone Number");
-			}else if(!StringUtil.isValidCPNumber(teacher.getCpNumber())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Cellphone Number");
-			}else if(!WebUtil.isValidEmail(teacher.getEmailAddress())) {
-				actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Email");
-			}else if(StringUtil.isEmpty(teacher.getAcademicProgramCodes())) {
+			//Academic Program
+			if(StringUtil.isEmpty(teacher.getAcademicProgramCodes())) {
 				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Academic Program");
-			}else {
-				List<DTOBase> userList = (List<DTOBase>) new UserDAO().getUserListByLastNameFirstNameMiddleNameUserGroupCode(teacher.getLastName(), teacher.getFirstName(), teacher.getMiddleName(), UserGroupDTO.USER_GROUP_TEACHER_CODE);
-				UserDTO userRfidExist = new UserDAO().getUserByRFId(teacher.getRfid());
-				if(userList.size() > 0){
-					UserDTO userNameExist = new UserDAO().getUserByCode(userList.get(0).getCode());
+			}
+			// Last Name and First Name
+			// Other have no middle name
+			else if(StringUtil.isEmpty(teacher.getLastName())) {
+				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Lastname");
+			}
+			else if(StringUtil.isEmpty(teacher.getFirstName())) {
+				actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Firstname");
+			}	
+			// Teacher Phone Number
+			else if(!StringUtil.isEmpty(teacher.getCpNumber()) && !StringUtil.isValidCPNumber(teacher.getCpNumber())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Cellphone Number");
+			}	
+			// Teacher Email Address
+			else if(!StringUtil.isEmpty(teacher.getEmailAddress()) && !WebUtil.isValidEmail(teacher.getEmailAddress())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Email Address is not valid!");
+			}
+			// Birthday
+			else if(DateTimeUtil.getNumberOfMonths(teacher.getBirthDate(), DateTimeUtil.getCurrentTimestamp()) < 24){
+					actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Birth Date");
+			}
+			// Prefix Name and Gender
+			else if(!StringUtil.isEmpty(teacher.getPrefixName())) {
+					if(teacher.getGender().equalsIgnoreCase(UserDTO.GENDER_FEMALE)) {
+						if(!teacher.isGenderFemaleByPrefixName(teacher.getPrefixName())) {
+							if(teacher.isGenderMaleByPrefixName(teacher.getPrefixName())) {
+								actionResponse.constructMessage(ActionResponse.TYPE_MISMATCH, new String[]{teacher.getPrefixName(), teacher.getGender()});
+								}
+							}
+						}
+					else if(teacher.getGender().equalsIgnoreCase(UserDTO.GENDER_MALE)) {
+						if(!teacher.isGenderMaleByPrefixName(teacher.getPrefixName())) {
+							if(teacher.isGenderFemaleByPrefixName(teacher.getPrefixName())) {
+								actionResponse.constructMessage(ActionResponse.TYPE_MISMATCH, new String[]{teacher.getPrefixName(), teacher.getGender()});
+							}
+						}
+					}
+				}				
+			// Permanent Street/Lot/Block
+				else if(StringUtil.isEmpty(teacher.getStreetPermanent())) {
+						actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Permanent Street");
+				}
+			// Permanent Barangay
+				else if(StringUtil.isEmpty(teacher.getStreetPermanent())) {
+						actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Permanent Barangay");
+				}
+			// Present Street/Lot/Block
+				else if(StringUtil.isEmpty(teacher.getStreetPresent())) {
+						actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Present Street");
+				}
+			// Present Barangay
+				else if(StringUtil.isEmpty(teacher.getStreetPresent())) {
+						actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Present Barangay");
+				}
+				else {
 					if(sessionInfo.isPreviousLinkAdd()) {
-							actionResponse.constructMessage(ActionResponse.TYPE_INFO, "Name: " + userNameExist.getName(false, true, false) + " is already existing in the system" + " with a birthday of " + userNameExist.getBirthDate());	
-					}else if(sessionInfo.isPreviousLinkUpdate()) {
+						String msg = "";
+						if(StringUtil.isEmpty(teacher.getCode())) {
+							List<DTOBase> existingUserListByNameAndGroup = new UserDAO().getUserListByLastNameFirstNameMiddleNameUserGroupCode(teacher.getLastName(), teacher.getFirstName(), teacher.getMiddleName(), UserGroupDTO.USER_GROUP_TEACHER_CODE);
+							
+							if(existingUserListByNameAndGroup.size() >= 1) {
+								if(existingUserListByNameAndGroup.size() == 1) {
+									UserDTO existingUser = (UserDTO) existingUserListByNameAndGroup.get(0);
+									if(existingUser != null) {
+										msg = "Entered teacher last, first and middle name is already existing in our database.  The existing record has a birthday of " + DateTimeUtil.getDateTimeToStr(existingUser.getBirthDate(), "MM/dd/yyyy");
+									}	
+								}
+								else {
+									for(DTOBase userObj: existingUserListByNameAndGroup) {
+										UserDTO existingUser = (UserDTO) userObj;
+										if(existingUser != null) {
+											if(StringUtil.isEmpty(msg)) {
+												msg = "Entered teacher last, first and middle name is already existing in our database.  The existing records has the following birthdays: ";
+											}
+											msg += "<br>" + DateTimeUtil.getDateTimeToStr(existingUser.getBirthDate(), "MM/dd/yyyy");
+										}
+									}
+								}
+								msg += "\nProceeding will result to create a duplicate names unless they had been proven different.";
+							}	
+						}	
+						
+						if(StringUtil.isEmpty(msg)) {
+							if(!StringUtil.isEmpty(teacher.getRfid())) {
+								UserDTO existingUser = new UserDAO().getUserByRFId(teacher.getRfid());
+								if(existingUser != null) {
+									msg = "RFID was already encoded to " + existingUser.getName(false, false, true);
+								}
+							}
+						}
+						
+						if(StringUtil.isEmpty(msg)) {
+							if(!StringUtil.isEmpty(teacher.getCpNumber())) {
+								UserDTO existingUser = UserUtil.getUserByCpNumber(teacher.getCpNumber());
+								if(existingUser != null) {
+									msg = "CP Number was already encoded to " + existingUser.getName(false, false, true);
+								}
+							}
+						}
+						
+						if(!StringUtil.isEmpty(msg)) {
+							actionResponse.constructMessage(ActionResponse.TYPE_INFO, msg);
+						}
+					}	
+					else if(sessionInfo.isPreviousLinkUpdate()) {
 						TeacherDTO teacherOrig = (TeacherDTO) getSessionAttribute(TeacherDTO.SESSION_TEACHER + "_ORIG");
-						if(!teacherOrig.getName(false, true, false).equalsIgnoreCase(teacher.getName(false, true, false))) {
-							actionResponse.constructMessage(ActionResponse.TYPE_INFO, "Name: " + userNameExist.getName(false, true, false) + " is already existing in the system" + " with a birthday of " + userNameExist.getBirthDate());
+						if(teacherOrig.equals(teacher)){
+							actionResponse.constructMessage(ActionResponse.TYPE_INFO, "No change has been done.");
 						}
 					}
 				}
 			}
 		}
 	}
-}
