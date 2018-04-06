@@ -1,6 +1,8 @@
 package com.laponhcet.dto;
 
+import com.laponhcet.util.SettingsUtil;
 import com.mytechnopal.dto.UserDTO;
+import com.mytechnopal.util.DateTimeUtil;
 
 public class StaffDTO extends UserDTO {
 	private static final long serialVersionUID = 1L;
@@ -23,6 +25,10 @@ public class StaffDTO extends UserDTO {
 	
 	public StaffDTO() {
 		super();
+		super.getCityPermanent().setCode(SettingsUtil.DEFAULT_CITY);
+		super.getCityPresent().setCode(SettingsUtil.DEFAULT_CITY);
+		super.getReligion().setCode(SettingsUtil.DEFAULT_RELIGION);
+		super.setBirthDate(DateTimeUtil.getStrToDateTime("1970-01-01", "yyyy-MM-dd"));
 		programGraduated = "";
 		jobRole = "";
 		assignedOffice = "";

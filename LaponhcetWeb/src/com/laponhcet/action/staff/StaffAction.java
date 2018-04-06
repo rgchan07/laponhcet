@@ -5,6 +5,7 @@ import java.util.List;
 import com.laponhcet.dto.AcademicProgramDTO;
 import com.laponhcet.dto.AcademicProgramGroupDTO;
 import com.laponhcet.dto.StaffDTO;
+import com.laponhcet.dto.TeacherDTO;
 import com.laponhcet.util.AcademicProgramUtil;
 import com.mytechnopal.ActionResponse;
 import com.mytechnopal.base.ActionBase;
@@ -17,6 +18,7 @@ import com.mytechnopal.dto.UserGroupDTO;
 import com.mytechnopal.util.DTOUtil;
 import com.mytechnopal.util.DateTimeUtil;
 import com.mytechnopal.util.StringUtil;
+import com.mytechnopal.util.UserUtil;
 import com.mytechnopal.util.WebUtil;
 
 public class StaffAction extends ActionBase {
@@ -28,8 +30,9 @@ public class StaffAction extends ActionBase {
 		List<DTOBase> cityList = (List<DTOBase>) getSessionAttribute(CityDTO.SESSION_CITY_LIST);
 		List<DTOBase> religionList = (List<DTOBase>) getSessionAttribute(ReligionDTO.SESSION_RELIGION_LIST);
 		List<DTOBase> academicProgramList = (List<DTOBase>) getSessionAttribute(AcademicProgramDTO.SESSION_ACADEMIC_PROGRAM_LIST);
-		List<DTOBase> academicProgramGroupList = (List<DTOBase>) getSessionAttribute(AcademicProgramGroupDTO.SESSION_ACADEMIC_PROGRAM_GROUP_LIST);
 		
+		//Personal Information
+		staff.setProfilePict(getRequestString("txtProfilePict", true));
 		staff.setRfid(getRequestString("txtRfid"));
 		staff.setPrefixName(getRequestString("cboPrefixName"));
 		staff.setLastName(getRequestString("txtLastName"));
@@ -38,23 +41,22 @@ public class StaffAction extends ActionBase {
 		staff.setSuffixName(getRequestString("cboSuffixName"));
 		staff.setOtherTitle(getRequestString("txtOtherTitle"));
 		
+		// Address
 		staff.setStreetPermanent(getRequestString("txtStreetPermanent"));
 		staff.setBarangayPermanent(getRequestString("txtBarangayPermanent"));
-		staff.setCityPermanent((CityDTO)DTOUtil.getObjById(cityList, getRequestInt("cboCityPermanent")));
-
-	    if(getRequestInt("txtIfChecked") == 1){
-				staff.setStreetPresent(staff.getStreetPermanent());
-				staff.setBarangayPresent(staff.getBarangayPermanent());
-				staff.setCityPresent(staff.getCityPermanent());
-				
-			}else{
-				staff.setStreetPresent(getRequestString("txtStreetPresent"));
-				staff.setBarangayPresent(getRequestString("txtBarangayPresent"));
-				staff.setCityPresent((CityDTO) DTOUtil.getObjById(cityList, getRequestInt("cboCityPresent")));
-				
-			}
-
-		staff.setBirthDate(getRequestDateTime("txtBirthDate", "MM/dd/yyyy"));
+		staff.setCityPermanent((CityDTO) DTOUtil.getObjById(cityList, getRequestInt("cboCityPermanent")));
+		// If Present Address == Permanent Address
+		if(getRequestBoolean("chkSameAsPermanent")) {
+			staff.setStreetPresent(staff.getStreetPermanent());
+			staff.setBarangayPresent(staff.getBarangayPermanent());
+			staff.setCityPresent(staff.getCityPermanent());
+		}
+		else {
+			staff.setStreetPresent(getRequestString("txtStreetPresent"));
+			staff.setBarangayPresent(getRequestString("txtBarangayPresent"));
+			staff.setCityPresent((CityDTO) DTOUtil.getObjById(cityList, getRequestInt("cboCityPresent")));
+				}
+		staff.setBirthDate(DateTimeUtil.getStrToDateTime(getRequestString("txtBirthDate"), "MM/dd/yyyy"));
 		staff.setGender(getRequestString("cboGender"));
 		staff.setReligion((ReligionDTO) DTOUtil.getObjById(religionList, getRequestInt("cboReligion")));
 		staff.setMaritalStatus(getRequestString("cboStatus"));
@@ -64,33 +66,26 @@ public class StaffAction extends ActionBase {
 		
 	    staff.setJobRole(getRequestString("txtJobRole"));
 	    staff.setAssignedOffice(getRequestString("txtAssignedOffice"));
-		staff.setAcademicProgramCodes(getRequestString("txtAcademicProgramCodes"));
-		String academicProgramCodes = "";
-		for(int i=0; i<academicProgramGroupList.size(); i++) {
-			AcademicProgramGroupDTO academicProgramGroup = (AcademicProgramGroupDTO)academicProgramGroupList.get(i);
-			String selectedAcademicProgramCodes = getSelectedCheckBox(AcademicProgramUtil.getAcademicProgramListByAcademicProgramGroupCode(academicProgramList, academicProgramGroup.getCode()), "AcademicProgram"+academicProgramGroup.getCode());
-			if(selectedAcademicProgramCodes.length() >=1 && academicProgramCodes.length() >= 1) {
-				academicProgramCodes += "~";
-			}
-			academicProgramCodes += selectedAcademicProgramCodes;
-		}
-		staff.setAcademicProgramCodes(academicProgramCodes);
+		staff.setAcademicProgramCodes(getSelectedCheckBox(academicProgramList, "AcademicProgram"));
 	}
 
 
 	protected void validateInput() {
 		if (!sessionInfo.isCurrentLinkDeleteSubmit()) {
 			StaffDTO staff = (StaffDTO) getSessionAttribute(StaffDTO.SESSION_STAFF);
-
-				if (StringUtil.isEmpty(staff.getLastName())) {
+			// Academic Program
+			 if (StringUtil.isEmpty(staff.getAcademicProgramCodes())) {
+			    	actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Academic Program");
+			    }
+			 	// Last Name and First Name
+			 	// Other have no middle name
+			 	else if (StringUtil.isEmpty(staff.getLastName())) {
 			      actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Last Name");
 			    }
 			    else if (StringUtil.isEmpty(staff.getFirstName())) {
 			    	actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "First Name");
 			    }
-			    else if (StringUtil.isEmpty(staff.getMiddleName())) {
-			    	actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Middle Name");
-			    }
+				// Prefix Name and Gender
 			    else if(!staff.getPrefixName().isEmpty()) {
 					if(staff.getGender().equalsIgnoreCase(UserDTO.GENDER_FEMALE)) {
 						if(!staff.isGenderFemaleByPrefixName(staff.getPrefixName())) {
@@ -107,26 +102,33 @@ public class StaffAction extends ActionBase {
 						}
 					}
 				}
-			    else if (StringUtil.isEmpty(staff.getStreetPermanent())) {
-			    	actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Permanent Address - Street");
-			    }
-			    else if (StringUtil.isEmpty(staff.getBarangayPermanent())) {
-			    	actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Permanent Address - Barangay");
-			    }
-			    else if (StringUtil.isEmpty(staff.getStreetPresent())) {
-			    	actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Present Address - Street");
-			    }
-			    else if (StringUtil.isEmpty(staff.getBarangayPresent())) {
-			    	actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Present Address - Barangay");
-			    }
+				// Permanent Street/Lot/Block
+				else if(StringUtil.isEmpty(staff.getStreetPermanent())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Permanent Street");
+				}
+			 	// Permanent Barangay
+				else if(StringUtil.isEmpty(staff.getStreetPermanent())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Permanent Barangay");
+				}
+				// Present Street/Lot/Block
+				else if(StringUtil.isEmpty(staff.getStreetPresent())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Present Street");
+				}
+				// Present Barangay
+				else if(StringUtil.isEmpty(staff.getStreetPresent())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Present Barangay");
+				}
+				// Phone Number
 			    else if (!StringUtil.isEmpty(staff.getCpNumber()) && !StringUtil.isValidCPNumber(staff.getCpNumber())) {
 						actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Cellphone Number.");
 				}
-			    else if(DateTimeUtil.getNumberOfMonths(staff.getBirthDate(), DateTimeUtil.getCurrentTimestamp()) < 216){
-					actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Birth Date");
+			 	// Student Email Address
+				else if(!StringUtil.isEmpty(staff.getEmailAddress()) && !WebUtil.isValidEmail(staff.getEmailAddress())) {
+					actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Email Address is not valid!");
 				}
-				else if(!WebUtil.isValidEmail(staff.getEmailAddress())) {
-					actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Email");
+			 	// Birthday
+				else if(DateTimeUtil.getNumberOfMonths(staff.getBirthDate(), DateTimeUtil.getCurrentTimestamp()) < 24){
+						actionResponse.constructMessage(ActionResponse.TYPE_INVALID, "Birth Date");
 				}
 			    else if (StringUtil.isEmpty(staff.getJobRole())) {
 			    	actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Job Role");
@@ -134,22 +136,64 @@ public class StaffAction extends ActionBase {
 			    else if (StringUtil.isEmpty(staff.getAssignedOffice())) {
 			    	actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Assigned Office");
 			    }
-			    else if (StringUtil.isEmpty(staff.getAcademicProgramCodes())) {
-			    	actionResponse.constructMessage(ActionResponse.TYPE_EMPTY, "Academic Program");
-			    }else {
-					List<DTOBase> userList = (List<DTOBase>) new UserDAO().getUserListByLastNameFirstNameMiddleNameUserGroupCode(staff.getLastName(), staff.getFirstName(), staff.getMiddleName(), UserGroupDTO.USER_GROUP_STAFF_CODE);
-					if(userList.size() > 0){
-						UserDTO userNameExist = new UserDAO().getUserByCode(userList.get(0).getCode());
-						if(sessionInfo.isPreviousLinkAdd()) {
-								actionResponse.constructMessage(ActionResponse.TYPE_INFO, "Name: " + userNameExist.getName(false, true, false) + " is already existing in the system" + " with a birthday of " + userNameExist.getBirthDate());	
-						}else if(sessionInfo.isPreviousLinkUpdate()) {
-							StaffDTO staffOrig = (StaffDTO) getSessionAttribute(StaffDTO.SESSION_STAFF + "_ORIG");
-							if(!staffOrig.getName(false, true, false).equalsIgnoreCase(staff.getName(false, true, false))) {
-								actionResponse.constructMessage(ActionResponse.TYPE_INFO, "Name: " + userNameExist.getName(false, true, false) + " is already existing in the system" + " with a birthday of " + userNameExist.getBirthDate());
+			    else {
+					if(sessionInfo.isPreviousLinkAdd()) {
+						String msg = "";
+						if(StringUtil.isEmpty(staff.getCode())) {
+							List<DTOBase> existingUserListByNameAndGroup = new UserDAO().getUserListByLastNameFirstNameMiddleNameUserGroupCode(staff.getLastName(), staff.getFirstName(), staff.getMiddleName(), UserGroupDTO.USER_GROUP_STAFF_CODE);
+							
+							if(existingUserListByNameAndGroup.size() >= 1) {
+								if(existingUserListByNameAndGroup.size() == 1) {
+									UserDTO existingUser = (UserDTO) existingUserListByNameAndGroup.get(0);
+									if(existingUser != null) {
+										msg = "Entered staff last, first and middle name is already existing in our database.  The existing record has a birthday of " + DateTimeUtil.getDateTimeToStr(existingUser.getBirthDate(), "MM/dd/yyyy");
+									}	
+								}
+								else {
+									for(DTOBase userObj: existingUserListByNameAndGroup) {
+										UserDTO existingUser = (UserDTO) userObj;
+										if(existingUser != null) {
+											if(StringUtil.isEmpty(msg)) {
+												msg = "Entered staff last, first and middle name is already existing in our database.  The existing records has the following birthdays: ";
+											}
+											msg += "<br>" + DateTimeUtil.getDateTimeToStr(existingUser.getBirthDate(), "MM/dd/yyyy");
+										}
+									}
+								}
+								msg += "\nProceeding will result to create a duplicate names unless they had been proven different.";
+							}	
+						}	
+						
+						if(StringUtil.isEmpty(msg)) {
+							if(!StringUtil.isEmpty(staff.getRfid())) {
+								UserDTO existingUser = new UserDAO().getUserByRFId(staff.getRfid());
+								if(existingUser != null) {
+									msg = "RFID was already encoded to " + existingUser.getName(false, false, true);
+								}
+							}
+						}
+						
+						if(StringUtil.isEmpty(msg)) {
+							if(!StringUtil.isEmpty(staff.getCpNumber())) {
+								UserDTO existingUser = UserUtil.getUserByCpNumber(staff.getCpNumber());
+								if(existingUser != null) {
+									msg = "CP Number was already encoded to " + existingUser.getName(false, false, true);
+								}
+							}
+						}
+						
+						if(!StringUtil.isEmpty(msg)) {
+							actionResponse.constructMessage(ActionResponse.TYPE_INFO, msg);
+						}
+					}	
+					else if(sessionInfo.isPreviousLinkUpdate()) {
+						StaffDTO teacherOrig = (StaffDTO) getSessionAttribute(StaffDTO.SESSION_STAFF + "_ORIG");
+						if(teacherOrig.equals(staff)){
+							actionResponse.constructMessage(ActionResponse.TYPE_INFO, "No change has been done.");
 						}
 					}
 				}
 			}
 		}
 	}
-}
+		 
