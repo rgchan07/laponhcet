@@ -6,6 +6,7 @@ import java.util.List;
 import com.laponhcet.dao.AcademicProgramDAO;
 import com.laponhcet.dto.AcademicProgramDTO;
 import com.laponhcet.dto.StaffDTO;
+import com.laponhcet.dto.StudentDTO;
 import com.mytechnopal.Pagination;
 import com.mytechnopal.SessionInfo;
 import com.mytechnopal.base.DTOBase;
@@ -132,12 +133,17 @@ public class StaffUtil extends UserUtil {
 	return name.substring(3);
 	}
 	
+	public static String getProfilePicture(StaffDTO staff){
+		String pict = !StringUtil.isEmpty(staff.getProfilePict())?staff.getProfilePict():" ";
+		return "<img src='" + pict + "' class='thumbnail' width='70' height='70' />";
+	}
+	
 	
 	public static void setPaginationRecord(SessionInfo sessionInfo, Pagination pagination) {
 		for(DTOBase dto: pagination.getCurrentPageRecordList()) {
 			StaffDTO staff = (StaffDTO) dto;
 			UserDTO user = new UserDAO().getUserByCode(staff.getCode());
-			staff.setPaginationRecord(new String []{"<img class = 'img-thumbnail img-md' src='" + staff.getProfilePict() + "'>", staff.getCode(), user.getName(true, true, true), staff.getJobRole(), staff.getAssignedOffice(), pagination.getLinkButtonStr(sessionInfo, staff.getId()).replace("~", ",")});
+			staff.setPaginationRecord(new String []{StaffUtil.getProfilePicture(staff), staff.getCode(), user.getName(true, true, true), staff.getJobRole(), staff.getAssignedOffice(), pagination.getLinkButtonStr(sessionInfo, staff.getId()).replace("~", ",")});
 		}
 	}
 	

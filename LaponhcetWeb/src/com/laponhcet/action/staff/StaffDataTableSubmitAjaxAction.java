@@ -6,9 +6,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.laponhcet.dto.StaffDTO;
+import com.laponhcet.util.StaffUtil;
 import com.mytechnopal.Pagination;
 import com.mytechnopal.base.AjaxActionBase;
 import com.mytechnopal.dao.UserDAO;
+import com.mytechnopal.dto.UserDTO;
 import com.mytechnopal.dto.UserGroupDTO;
 import com.mytechnopal.util.StringUtil;
 
@@ -47,13 +49,14 @@ protected void setPaginationList() {
 	}
 	for(int i=0; i<currentPageTotalRecord; i++) {
 		StaffDTO staff = (StaffDTO) pagination.getCurrentPageRecordList().get(i);
+		UserDTO user = new UserDAO().getUserByCode(staff.getCode());
 		try {
 			JSONObject jsonObjDetails = new JSONObject();
-			jsonObjDetails.put("pict", staff.getProfilePict());
+			jsonObjDetails.put("pict", StaffUtil.getProfilePicture(staff));
 			jsonObjDetails.put("code", staff.getCode());
-			jsonObjDetails.put("name", staff.getName(true, true, true));
+			jsonObjDetails.put("name", user.getName(true, true, true));
 			jsonObjDetails.put("jobRole", staff.getJobRole());
-			jsonObjDetails.put("assignedOffice", staff.getAssignedOffice());
+			jsonObjDetails.put("officeAssigned", staff.getAssignedOffice());
 			jsonObjDetails.put(Pagination.PAGINATION_TABLE_ROW_LINK_BUTTON, pagination.getLinkButtonStr(sessionInfo, staff.getId()).replace("~", ","));
 			jsonArray.put(jsonObjDetails);
 		} catch (JSONException e) {
