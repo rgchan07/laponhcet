@@ -158,12 +158,18 @@
                         <div class="col-lg-12" style="margin-top: -10px;">
                             <div class="navy-line"></div>
                             <h1>OUR<br/> <span class="navy"> <b>BARANGAY OFFICIALS</b></span> </h1>
+                            <p>2015-2017</p>
                         </div>
                     </div><br> <br>
                     <div class="col-lg-12">
                         <div class="col-sm-2 wow pulse">
                             <div class="team-member">
-                                <img src="/static/BRGY32/images/officials/secretary.png" class="img-responsive" alt="">
+                                <img src="/static/BRGY32/images/officials/chairman.png" class="img-responsive" alt="">
+                            </div>
+                        </div>
+                          <div class="col-sm-2 wow pulse">
+                            <div class="team-member">
+                                <img src="/static/BRGY32/images/officials/secretary.png" class="img-responsive " alt="">
                             </div>
                         </div>
                         <div class="col-sm-2">
@@ -178,11 +184,6 @@
                         </div>
                         <div class="col-sm-2 wow pulse">
                             <div class="team-member">
-                                <img src="/static/BRGY32/images/officials/chairman.png" class="img-responsive " alt="">
-                            </div>
-                        </div>
-                        <div class="col-sm-2 wow pulse">
-                            <div class="team-member">
                                 <img src="/static/BRGY32/images/officials/kagawad2.png" class="img-responsive  " alt="">
                             </div>
                         </div>
@@ -192,7 +193,7 @@
                             </div>
                         </div>
                         </div>
-                         <div class="col-lg-12" style="margin-left: 17%;">
+                         <div class="col-lg-12 no-style" style="margin-left: 17%;">
                       
                         <div class="col-sm-2 wow pulse">
                             <div class="team-member">
@@ -360,8 +361,9 @@
                 <div class="col-lg-12">
                     <div class="navy-line"></div>
                  <h1><span class="navy"><b> LIVE STREAMING </span></b></h1>
-                 <div class="container">
+                 <div class="container livewrapper">
               <iframe src="https://www.youtube.com/embed/videoseries?list=PLvMZc0qcBjs--OTuNfga533vts-2Lyc_y" allow="autoplay; encrypted-media" style="border:0; width: 100%; height: 550px;" allowfullscreen></iframe>
+                    <h3>Live Streaming | <a href="https://www.youtube.com/watch?v=UmCjZVmYSOE&list=PLvMZc0qcBjs--OTuNfga533vts-2Lyc_y" target="_blank">Direct Link</a></h3>
                   </div>
                 </div>
             </div>
